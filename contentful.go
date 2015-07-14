@@ -2,10 +2,10 @@ package contentful
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
+	"io/ioutil"
 	"net/http"
 	"time"
-	"io/ioutil"
 )
 
 const baseURL = "https://cdn.contentful.com/spaces/"
@@ -43,15 +43,16 @@ func (client *Client) query(endpoint string, params map[string]string) (resp []b
 		return
 	}
 
-	req.Header.Set("Authorization", "Bearer " + client.AccessToken)
+	req.Header.Set("Authorization", "Bearer "+client.AccessToken)
 	res, err := c.Do(req)
 
 	if err != nil {
 		return
 	}
-
+	if res.StatusCode != http.StatusOK {
+		return resp, errors.New(res.Status)
+	}
 	resp, err = ioutil.ReadAll(res.Body)
-
 	return
 }
 
@@ -154,7 +155,7 @@ type Entries struct {
 }
 
 type Entry struct {
-	Sys SystemProperties
+	Sys    SystemProperties
 	Fields interface{}
 }
 
@@ -200,7 +201,7 @@ type Assets struct {
 
 type Asset struct {
 	Sys    SystemProperties
-	Fields struct{
+	Fields struct {
 		Title string
 		File  File
 	}
